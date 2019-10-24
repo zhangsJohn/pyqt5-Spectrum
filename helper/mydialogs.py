@@ -3,7 +3,8 @@ import serial.tools.list_ports
 from PyQt5.QtWidgets import QDialog, QInputDialog
 from PyQt5.QtCore import pyqtSlot
 from myui.SerialDialogUi import Ui_SrDialog
-from myui.AppearanceDialogUi import Ui_AppearanceDialog
+from myui.HelpDialogUi import Ui_HelpDialog
+from myui.AboutDialogUi import Ui_AboutDialog
 
 class SerialDialog(QDialog, Ui_SrDialog):
     '''manage the serial setting dialog '''
@@ -52,3 +53,14 @@ class SerialDialog(QDialog, Ui_SrDialog):
         data['timeOut'] = float(self.timeOutEt.text())
         return data
         
+class HelpDialog(QDialog, Ui_HelpDialog):
+    '''manage the serial setting dialog '''
+    def __init__(self, parent=None):
+        super(HelpDialog, self).__init__(parent)
+        self.setupUi(self)
+
+class AboutDialog(QDialog, Ui_AboutDialog):
+    '''manage the serial setting dialog '''
+    def __init__(self, parent=None):
+        super(AboutDialog, self).__init__(parent)
+        self.setupUi(self)

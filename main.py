@@ -6,8 +6,8 @@ from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
 import pyqtgraph as pg
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMenu
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QThreadPool
-from helper.mydialogs import SerialDialog
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QThreadPool,QUrl
+from helper.mydialogs import SerialDialog,HelpDialog,AboutDialog
 from myui.MainUi import Ui_MainWindow
 from helper.utils import *
 from helper.fit_utils import *
@@ -57,9 +57,9 @@ class MainWin(QMainWindow, Ui_MainWindow):
         # 获取显示器分辨率大小
         desktop = QApplication.desktop()
         screenRect = desktop.screenGeometry()
-        h = screenRect.height()
-        w = screenRect.width()
-        self.setGeometry(int(w*0.1), int(h*0.1), int(w*0.8), int(h*0.8))
+        self.h = screenRect.height()
+        self.w = screenRect.width()
+        self.setGeometry(int(self.w*0.1), int(self.h*0.1), int(self.w*0.8), int(self.h*0.8))
 
     def loadStyle(self):
         try:
@@ -320,6 +320,22 @@ class MainWin(QMainWindow, Ui_MainWindow):
             self.serial_info = sd.get_content()  # 获取串口配置信息，用于连接串口使用
             self.msg += str(self.serial_info) + '\n'
             self.tbStates.setText(self.msg)
+
+    @pyqtSlot()
+    def on_actionHelp_triggered(self):
+        hd = HelpDialog()
+        url = QUrl("HELP.html")
+        hd.webViewTB.setSource(url)
+        hd.setGeometry(int(self.w*0.3), int(self.h*0.1), int(self.w*0.4), int(self.h*0.8))
+        hd.exec_()
+
+    @pyqtSlot()
+    def on_actionProject_triggered(self):
+        ad = AboutDialog()
+        url = QUrl("Project.html")
+        ad.webViewTB.setSource(url)
+        ad.setGeometry(int(self.w*0.3), int(self.h*0.1), int(self.w*0.4), int(self.h*0.8))
+        ad.exec_()
 
     @pyqtSlot()
     def on_actionInput_triggered(self):
