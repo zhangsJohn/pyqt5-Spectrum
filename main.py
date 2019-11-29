@@ -25,6 +25,7 @@ class MainWin(QMainWindow, Ui_MainWindow):
     def initData(self):
         self.msg = ''  # state状态框提示信息
         self.basetime = 0  # 用于LCD计时显示的初始时间
+        self.t_count = 0  # LCD计时显示的时间
         self.timer = QTimer()
         self.threadpool = QThreadPool()
         self.serial_info = {}  # serial info dict
@@ -33,8 +34,8 @@ class MainWin(QMainWindow, Ui_MainWindow):
         self.ploths = [0, 0, 0]   # plot handle of spec/snap/cali
         self.plotWg = [self.specPlot, self.snapPlot, self.caliPlot]
         self.pack_flag = 255  # data package head/tail flag
-        self.measure_inf = {'time': 100, 'ch': 1024,
-                            'max_energy': 10000, 'ref_num': 100}
+        self.measure_inf = {'time': 1000, 'ch': 1024,
+                            'max_energy': 20000, 'ref_num': 100}
         self.stop_flag = 0  # begin_flag to control the loop of read thread
         # the LinearRegionItem handle(get the fit region)
         self.roi_handle = [0, 0, 0]
@@ -170,6 +171,7 @@ class MainWin(QMainWindow, Ui_MainWindow):
         1.close serial port
         2.stop timer and clear readThread
         """
+        self.on_pbSnap_clicked()
         self.stop_flag = 1  # 停止线程读取数据
         self.manage_serial(0)
         self.timer.stop()  # 结束计时器更新
@@ -425,8 +427,9 @@ class MainWin(QMainWindow, Ui_MainWindow):
 
     def recurring_timer(self):
         t = int(time.time()-self.basetime)
+        self.t_count = t
         self.timeLCD.display(t)
-        if t == self.measure_inf['time']:
+        if t >= self.measure_inf['time']:
             self.on_pbStop_clicked()
 
 
@@ -445,8 +448,7 @@ class MainWin(QMainWindow, Ui_MainWindow):
                 ).menu.addAction('Fit')
                 self.fit[i].setCheckable(True)
                 self.fit[i].triggered.connect(self.on_fit_triggered)
-            self.ploths[i].setPen((228, 128, 130))
-            self.ploths[i].setData(y=xdata, x=xdata)
+                self.ploths[i].setPen((228, 128, 130))
 
     def start_read_thread(self,mod=0):
         if mod==0:
@@ -485,7 +487,6 @@ class MainWin(QMainWindow, Ui_MainWindow):
 
     def execute_find_fun(self, result_callback,state_callback):
         while True:
-            print('run')
             if self.stop_flag:
                 self.msg += 'find max thread stopped\n'
                 break
@@ -501,7 +502,7 @@ class MainWin(QMainWindow, Ui_MainWindow):
     def execute_read_fun(self, result_callback, state_callback):
         # 这里我们可以利用self,读取主线程的msg/stop_flag等变量,但是不能调用主线程的widget更新GUI的方法
         while True:
-            print('run')
+            print(self.t_count)
             if self.stop_flag:
                 self.msg += 'read thread stopped\n'
                 break

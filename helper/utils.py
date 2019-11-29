@@ -96,25 +96,26 @@ def unpack(bytesdata, tail, size):
     arr = np.asarray(bytearray(bytesdata))
     buff = []   # 存用于hist的原始数据
     while True:
-        index = np.where(arr == tail)[0]
-        if len(arr) > size:
-            if (arr[0] == tail) and (arr[size] == tail):
-                ind = index[np.where(index % size != 0)]     # 找到传输出错的间断点
-                if ind.size:
-                    buff.extend(arr[0:index[np.where(index==ind[0])[0][0]-1]])     # 将前面符合要求的子串取下拼接
-                    arr = arr[(ind[0]):len(arr)]     # 删除拼接的字串，对后面的子串重复运算
-                else:
-                    buff.extend(arr)
+        index = np.where(arr == tail)[0]    # 找到数组中的全部FF标志位的索引位
+        if len(arr) > size:  # 数据长度至少要大于一个完整数据包
+            if (index[0] == size-1):
+                ind_err = index[np.where((index+1) % size != 0)]     # 找到传输出错的间断点
+                if len(ind_err) == 0 :
+                    buff.extend(arr[0:index[-1]+1])  # 不存在错误节点时，拼接存储
                     break
+                else:
+                    err = index[np.where(index==ind_err[0])[0][0]-1]
+                    buff.extend(arr[0:err+1])     # 将前面符合要求的子串取下拼接
+                    arr = arr[ind_err[0]+1:]     # 删除拼接的字串，对后面的子串重复运算
             else:
-                arr = arr[(index[1]):len(arr)]    # 删除前端起始位以前的不完整数据
+                arr = arr[(index[0]+1):]    # 删除前端起始位以前的不完整数据
         else:
             break
-    return np.asarray(buff[0:-1]).reshape([int((len(buff)-1)/size), size])[:, 1:]
-
+    out = np.asarray(buff).reshape([int((len(buff))/size), size])[:, 0:size-1]
+    return out
 
 if __name__ == '__main__':
-    orig = [1,2,3,255,
+    orig = [2,3,255,
             2,2,3,255,
             3,2,3,255,
             4,2,3,255,9,
@@ -127,7 +128,7 @@ if __name__ == '__main__':
             11,2,3,255,
             12,2,3,255,
             13,2,3,255,
-            14,2,3,255]
+            14,2,3,255,1,1,255]
     data = bytes(orig)
     #print(orig[-5:len(orig)])
     print(unpack(data,255,4))
